@@ -24,5 +24,10 @@ void mouse(unsigned char *x, unsigned char *y);
 int loop(int *x, int y);
 int isnum(int letter);
 int isalpha(int letter);
+int	hasspace(int c);
+int	_strlen(unsigned char *s);
+void _memset(void *data, int c, int size);
+int	_tolower(int c);
+int	_toupper(int c);
 
 #endif /* INCLUDE_ASSEMBLY_ASSEMBLY_H_ */

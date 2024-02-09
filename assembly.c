@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <assembly/assembly.h>
+#include <assembly.h>
 
 int mul(int a, int b) {
 	int result;
@@ -47,30 +47,6 @@ int left(int a)
 		: "=g" (result) : "a" (a)
 	);
 	return (result);
-}
-
-#include <stdio.h>
-
-int _strlen(unsigned char *str) {
-    unsigned char len = 0;
-    unsigned char *s = str;
-
-    asm (
-        "mov $0, %0;"
-        "increase:;"
-        "cmpb $0, (%1);"
-        "je done;"
-        "inc %0;"
-        "inc %1;"
-        "jmp increase;"
-        "done:;"
-        : "+r" (len), "+r" (s)
-        :
-        : "cc", "memory"
-    );
-
-    printf("%i\n", len);
-    return len;
 }
 
 void mouse(unsigned char *x, unsigned char *y)
@@ -143,4 +119,116 @@ int isalpha(int letter)
 		: "a" (letter)
 	);
 	return (alpha);
+}
+
+int	hasspace(int c)
+{
+	char	range;
+
+	range = 0;
+	asm (
+		"cmp $0x8,%1;"
+		"jb space_outrange;"
+		"cmp $0xD,%1;"
+		"jbe space_inrange;"
+		"cmp $0x20,%1;"
+		"jne space_outrange;"
+		"space_inrange:"
+		"mov $1,%%dx;"
+		"jmp space_done;"
+		"space_outrange:;"
+		"mov $0,%%dx;"
+		"space_done:;"
+		: "=d" (range)
+		: "a" (c)
+	);
+	return (range);
+}
+
+int _strlen(unsigned char *str) {
+    unsigned char len = 0;
+    unsigned char *s = str;
+
+    asm (
+        "mov $0, %0;"
+        "lenandcharpp:;"
+        "cmpb $0, (%1);"
+        "je strlen_done;"
+        "inc %0;"
+        "inc %1;"
+        "jmp lenandcharpp;"
+        "strlen_done:;"
+        : "+r" (len), "+r" (s)
+        :
+        : "cc", "memory"
+    );
+    return len;
+}
+
+void _memset(void *str, int c, int size)
+{
+	unsigned char	*upd;
+
+	upd = str;
+	asm (
+		"movl $0, %%ecx;"
+		"compare:"
+		"cmp %1, %%ecx;"
+		"jge memset_done;"
+		"movb %b2, (%0);"	// movb moves the 'c' byte into '*str'
+		"inc %%ecx;"
+		"inc %0;"
+		"jmp compare;"
+		"memset_done:"
+		"movb $0, (%0);"
+		: "+r" (upd)
+		: "m" (size), "r" (c)
+		: "cc", "memory"
+	);
+}
+
+int	_tolower(int c)
+{
+	int lower;
+
+	asm (
+		"cmp $0x41, %1;"
+		"jb notinlower;"
+		"cmp $0x5A, %1;"
+		"jbe inlower;"
+		"notinlower:"
+		"movl $0, %0;"
+		"jmp lowerdone;"
+		"inlower:"
+		"movl %1, %0;"
+		"addl $0x20, %0;"
+		"lowerdone:"
+		: "+r" (lower)
+		: "m" (c)
+		: "cc", "memory"
+	);
+	return (lower);
+}
+
+int	_toupper(int c)
+{
+	int upper;
+
+	asm (
+		"cmp $0x61, %1;"
+		"jb notinupper;"
+		"cmp $0x7A, %1;"
+		"jbe inupper;"
+		"notinupper:"
+		"movl $0, %0;"
+		"jmp upperdone;"
+		"inupper:"
+		"movl %1, %0;"
+		"subl $0x20, %0;"
+		"upperdone:"
+		: "+r" (upper)
+		: "m" (c)
+		: "cc", "memory"
+	);
+	return (upper);
 }
